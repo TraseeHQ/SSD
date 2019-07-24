@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ssd',
-    version='0.0.0',
+    version='1.2.0',
     packages=find_packages(include=['ssd.*']),
     install_requires=[
         'torch~=1.0',
