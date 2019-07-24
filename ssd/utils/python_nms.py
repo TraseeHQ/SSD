@@ -2,14 +2,13 @@ import torch
 import numpy as np
 
 
-def python_nms(boxes, scores, nms_thresh, max_count=-1):
+def python_nms(boxes, scores, nms_thresh):
     """ Performs non-maximum suppression using numpy
         Args:
             boxes(Tensor): `xyxy` mode boxes, use absolute coordinates(not support relative coordinates),
                 shape is (n, 4)
             scores(Tensor): scores, shape is (n, )
             nms_thresh(float): thresh
-            max_count (int): if > 0, then only the top max_proposals are kept  after non-maximum suppression
         Returns:
             indices kept.
     """
@@ -25,7 +24,7 @@ def python_nms(boxes, scores, nms_thresh, max_count=-1):
     y1 = boxes[:, 1]
     x2 = boxes[:, 2]
     y2 = boxes[:, 3]
-    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+    areas = (x2 - x1) * (y2 - y1)
     order = np.argsort(scores)[::-1]
     num_detections = boxes.shape[0]
     suppressed = np.zeros((num_detections,), dtype=np.bool)
@@ -48,15 +47,13 @@ def python_nms(boxes, scores, nms_thresh, max_count=-1):
             yy1 = max(iy1, y1[j])
             xx2 = min(ix2, x2[j])
             yy2 = min(iy2, y2[j])
-            w = max(0, xx2 - xx1 + 1)
-            h = max(0, yy2 - yy1 + 1)
+            w = max(0, xx2 - xx1)
+            h = max(0, yy2 - yy1)
 
             inter = w * h
             ovr = inter / (iarea + areas[j] - inter)
             if ovr >= nms_thresh:
                 suppressed[j] = True
     keep = np.nonzero(suppressed == 0)[0]
-    if max_count > 0:
-        keep = keep[:max_count]
     keep = torch.from_numpy(keep).to(origin_device)
     return keep
